@@ -35,10 +35,8 @@ def extract_pdf_pages(file_path: Path) -> list[dict[str, Any]]:
                         "text": text,
                     }
                 )
-    except (RuntimeError, ValueError, fitz.fitz.FileDataError, fitz.FileDataError):
+    except (RuntimeError, ValueError, fitz.FileDataError):
         # PyMuPDF raises a few different exceptions for unreadable PDFs.
-        return []
-    except Exception:
         return []
     return pages
 
@@ -61,10 +59,17 @@ def chunk_text(text: str, chunk_size: int = MAX_CHUNK_CHARS, overlap: int = CHUN
         chunk = text[start:end]
         if len(chunk.strip()) == 0:
             break
-        chunks.append(chunk.strip())
+        cleaned_chunk = chunk.strip()
+        if not chunks or cleaned_chunk != chunks[-1]:
+            chunks.append(cleaned_chunk)
         if end >= len(text):
             break
-        start = max(start + chunk_size - overlap, 0 if start == 0 else start + 1)
+        next_start = max(start + chunk_size - overlap, 0 if start == 0 else start + 1)
+        next_end = min(len(text), next_start + chunk_size)
+        if chunks and text[next_start:next_end].strip() == chunks[-1]:
+            # Avoid identical adjacent windows when the input repeats periodically.
+            next_start += 1
+        start = next_start
     return chunks
 
 

@@ -6,7 +6,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-from app.config import EMBEDDING_MODEL, GENERATION_MODEL, PDF_DIR
+from app.config import (
+    EMBEDDING_MODEL,
+    GENERATION_MODEL,
+    PDF_DIR,
+    ollama_model_available,
+)
 from app.rag_pipeline import RAGPipeline
 
 
@@ -36,9 +41,10 @@ def check_environment() -> dict:
             if len(parts) >= 2:
                 models.append(parts[0])
 
+    available_models = set(models)
     model_status = {
-        "embedding": EMBEDDING_MODEL in models,
-        "generation": GENERATION_MODEL in models,
+        "embedding": ollama_model_available(EMBEDDING_MODEL, available_models),
+        "generation": ollama_model_available(GENERATION_MODEL, available_models),
     }
 
     print("Environment check")

@@ -1,0 +1,67 @@
+{
+  "dataset_version": "synthetic-v1",
+  "description": "Synthetic local smoke corpus with a factual lookup, a multi-page question, and an unanswerable question.",
+  "corpus": [
+    {
+      "document_id": "synthetic-operations-handbook",
+      "filename": "synthetic-operations-handbook.pdf",
+      "pages": [
+        {
+          "page": 1,
+          "text": "Operations pilot reviews begin ninety days after launch. The review checks response readiness and staff training."
+        },
+        {
+          "page": 2,
+          "text": "The synthetic incident bridge access code is CEDAR-482. This example code is only for evaluation and is not a real credential."
+        },
+        {
+          "page": 3,
+          "text": "After the first ninety-day review, operations readiness is reviewed quarterly. The quarterly review checks response readiness and staff training."
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "lookup-bridge-code",
+      "question": "What is the synthetic incident bridge access code?",
+      "reference_answer": "CEDAR-482",
+      "expected_sources": [
+        {
+          "document_id": "synthetic-operations-handbook",
+          "page": 2
+        }
+      ],
+      "relevant_chunk_ids": [],
+      "category": "factual_lookup",
+      "answerable": true
+    },
+    {
+      "case_id": "multi-page-review-schedule",
+      "question": "When is the first operations review, and how often do reviews happen after that?",
+      "reference_answer": "The first review is ninety days after launch, then reviews happen quarterly.",
+      "expected_sources": [
+        {
+          "document_id": "synthetic-operations-handbook",
+          "page": 1
+        },
+        {
+          "document_id": "synthetic-operations-handbook",
+          "page": 3
+        }
+      ],
+      "relevant_chunk_ids": [],
+      "category": "multi_page_question",
+      "answerable": true
+    },
+    {
+      "case_id": "abstain-office-location",
+      "question": "Which city hosts the satellite office?",
+      "reference_answer": null,
+      "expected_sources": [],
+      "relevant_chunk_ids": [],
+      "category": "insufficient_evidence",
+      "answerable": false
+    }
+  ]
+}

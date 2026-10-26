@@ -6,8 +6,15 @@ __pycache__/
 *.log
 .env
 .env.*
+!**/.env.example
 chroma_db/
 *.sqlite3
+node_modules/
+dist/
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+evaluation/reports/
 .DS_Store
 Thumbs.db
 private/

@@ -2,9 +2,11 @@ from pathlib import Path
 
 import pytest
 
+from app.config import EMBEDDING_MODEL
 from app.generation import generate_answer
 from app.ingestion import build_document_chunks, chunk_text, stable_chunk_id
 from app.retrieval import validate_question
+from app.vector_store import generate_embedding
 
 
 def test_chunk_text_overlap_and_length():
@@ -33,6 +35,42 @@ def test_empty_question_validation_raises():
         validate_question("")
     with pytest.raises(ValueError):
         validate_question("   ")
+
+
+def test_generate_embedding_uses_current_ollama_embed_api(monkeypatch):
+    request = {}
+
+    def fake_request(endpoint, payload):
+        request["endpoint"] = endpoint
+        request["payload"] = payload
+        return {"embeddings": [[0.25, -0.5, 0.75]]}
+
+    monkeypatch.setattr("app.vector_store._ollama_request", fake_request)
+    assert generate_embedding("known text") == [0.25, -0.5, 0.75]
+    assert request["endpoint"] == "/api/embed"
+    assert request["payload"]["input"] == "known text"
+
+
+def test_generate_embedding_falls_back_for_older_ollama(monkeypatch):
+    import requests
+
+    calls = []
+
+    def fake_request(endpoint, payload):
+        calls.append((endpoint, payload))
+        if endpoint == "/api/embed":
+            response = requests.Response()
+            response.status_code = 404
+            raise requests.HTTPError("not found", response=response)
+        return {"embedding": [0.1, -0.2]}
+
+    monkeypatch.setattr("app.vector_store._ollama_request", fake_request)
+    assert generate_embedding("known text") == [0.1, -0.2]
+    assert calls[0][0] == "/api/embed"
+    assert calls[1] == (
+        "/api/embeddings",
+        {"model": EMBEDDING_MODEL, "prompt": "known text"},
+    )
 
 
 def test_insufficient_evidence_response():
